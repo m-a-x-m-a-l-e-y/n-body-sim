@@ -1,6 +1,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <thrust/transform.h>
+#include <thrust/for_each.h>
 // #include <thrust/transform.h>
 
 #include "bodies.cu"
@@ -68,7 +69,6 @@ void run(int N){
         // push back moon as a passive temporarily
         passive_bodies.push_back(Moon);
         // **
-
         // Copy over to device_vectors
         thrust::copy(passive_bodies.begin(), passive_bodies.begin() + passive_bodies.size(), passive_bodies_D.begin());
     // =================================================
@@ -78,13 +78,32 @@ void run(int N){
     // Execution loop / end of setup
     int maximum = 1e5;
     int iterations = 0;
-    while(iterations < maximum){
-        for(size_t i = 0; i < passive_bodies_D.size(); i++){
-            for(size_t i = 0; i < grav_bodies_D.size(); i++){
-                passive_bodies_D[i].add_force();
+
+    // Visualization Elements
+    // Array for keeping VTK data ( [ [0,1,2]... ])
+    int[][] VTK_data = new int[iterations][3];
     
-            }
+
+    while(iterations < maximum){
+        //
+        // First loop adds all the forces from the gravitational bodies onto the passive bodies
+        //
+        // -- for_each uses : (device type, begin pointer, end pointer, functor to apple) -- 
+        // -- runs for each passive body 'p' in the passive_bodies_D array
+        thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), force_functor<T>{thrust::raw_pointer_cast(passive_bodies_D.data()) , passive_bodies_D.size()});
+        //
+        // Second loop adds all the forces from the gravitational bodies onto the gravitational bodies
+        //
+        for(size_t i = 0; i < grav_bodies_D.size(); i++){
+
         }
+        //
+        // Loops 3 & 4 step everything from passive bodies and grav bodies
+        //
+        for(size_t i = 0; i < passive_bodies_D.size(); i++){
+
+        }
+
         for(size_t i = 0; i < grav_bodies_D.size(); i++){
 
         }
