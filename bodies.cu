@@ -45,7 +45,7 @@ struct Body{
         // calculates starting velocity to enable circular orbits
     // =============================================================================
     
-    __host__ __device__ void step(T other){
+    __host__ __device__ void step(){
         // first order euler partial implicit
         // update to leapfrog 
         this->vx += this->fx/this->m;

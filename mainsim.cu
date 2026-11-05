@@ -90,19 +90,19 @@ void run(int N){
         //
         // -- for_each uses : (device type, begin pointer, end pointer, functor to apple) -- 
         // -- runs for each passive body 'p' in the passive_bodies_D array
-        thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), force_functor<T>{thrust::raw_pointer_cast(passive_bodies_D.data()) , passive_bodies_D.size()});
+        // -- functor is contstructed with ptr to array of grav bodies on the gpu
+        thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), force_functor<T>{thrust::raw_pointer_cast(grav_bodies_D.data()) , grav_bodies_D.size()});
+        
         //
         // Second loop adds all the forces from the gravitational bodies onto the gravitational bodies
         //
-        for(size_t i = 0; i < grav_bodies_D.size(); i++){
+        thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), force_functor<T>{thrust::raw_pointer_cast(grav_bodies_D.data()) , grav_bodies_D.size()});
 
-        }
         //
         // Loops 3 & 4 step everything from passive bodies and grav bodies
         //
-        for(size_t i = 0; i < passive_bodies_D.size(); i++){
-
-        }
+        thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), step_functor<T>{});
+  
 
         for(size_t i = 0; i < grav_bodies_D.size(); i++){
 
