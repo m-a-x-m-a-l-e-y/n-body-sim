@@ -7,6 +7,8 @@ struct step_functor
 
     __host__ __device__
     void operator()(){
-        input->step();
+        ptr->step();
+        VTK_DATA[VTK_DATA.size()];
+
     }
 };

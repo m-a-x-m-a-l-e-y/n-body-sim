@@ -12,10 +12,9 @@
 static const double Mass_Sun = 1.9884e30; // kg 
 static const double Mass_Earth = 5.9722e24; 
 static const double Mass_Moon = 7.35e22;
-static const double Sun_Position []= {0,0,0}; // x , y, z
+static const double Sun_Position [] = {0,0,0}; // x , y, z
 static const double Earth_Position [] = {150*10e6, 0, 0};
-static const double Moon_Position []= {Earth_Position[0] + 384*10e3,0,0};
-
+static const double Moon_Position [] = {Earth_Position[0] + 384*10e3,0,0};
 
 
 
@@ -83,6 +82,9 @@ void run(int N){
     // Array for keeping VTK data ( [ [0,1,2]... ])
     int[][] VTK_data = new int[iterations][3];
     
+    double Sun_VTK[iterations][3];
+    double Earth_VTK[iterations][3];
+    double Moon_VTK[iterations][3];
 
     while(iterations < maximum){
         //
@@ -101,12 +103,20 @@ void run(int N){
         //
         // Loops 3 & 4 step everything from passive bodies and grav bodies
         //
-        thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), step_functor<T>{});
-  
+        thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), step_functor<T>{thrust::raw_pointer_cast(passive_bodies_D.data())});
+        thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), step_functor<T>{thrust::raw_pointer_cast(grav_bodies_D.data())});
 
-        for(size_t i = 0; i < grav_bodies_D.size(); i++){
+        // Optional save to array which takes a lot of extra time
 
-        }
+
+        // relies on order added to vector
+            Sun_VTK[iterations] = {Sun.rx,Sun.ry,Sun.rx};
+            Earth_VTK[iterations] = {Earth.rx,Earth.ry,Earth.rx};
+
+        // 
+
+
+       
 
     }
 
