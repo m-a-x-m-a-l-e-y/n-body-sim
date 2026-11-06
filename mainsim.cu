@@ -120,6 +120,15 @@ void run(int N){
 
     }
 
+    std::ofstream position_storage("sun_vtk_data.txt");
+
+    for(int i = 0; i < iterations; i++;){
+        for(int j = 0; j < 3;j++){
+            position_storage << Sun_VTK[iterations][j]
+            position_storage << "\n";
+        }
+    }
+
     
 }
 
