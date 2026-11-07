@@ -17,7 +17,7 @@
 static const double Mass_Sun = 1.9884e30; // kg 
 static const double Mass_Earth = 5.9722e24; 
 static const double Mass_Moon = 7.35e22;
-static const double Sun_Position [] = {0,0,0}; // x , y, z
+// static const double Sun_Position [] = {0,0,0}; // x , y, z
 static const double Earth_Position [] = {1.49e11, 0, 0};
 static const double Moon_Position [] = {Earth_Position[0] + 3.844e8,0,0};
 
@@ -50,6 +50,8 @@ void run(int N, T dt){
     // All 3 bodies are along the X-Axis, so circular starting velocities are in the y-direction
     Earth.vy = Earth.circular_orbit_velocity(&Sun);
     Moon.vy = Moon.circular_orbit_velocity(&Earth);
+    std::cout << Earth.vy <<std::endl;
+    std::cout << Moon.vy << std::endl;
     
     //Add all bodies to thrust vectors ========================================
         std::vector <Body<T>> passive_bodies;
@@ -92,7 +94,7 @@ void run(int N, T dt){
     std::vector<std::vector<T>> Moon_VTK;
 
     // Execution loop / end of setup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int maximum = 1e5;
+    int maximum = 100;
     int iterations = 0;
 
     while(iterations < maximum){
@@ -117,25 +119,33 @@ void run(int N, T dt){
         // relies on order added to vector
             Body<T> Sun_ = grav_bodies_D[1];
             Body<T> Earth_ = grav_bodies_D[0];
-            Sun_VTK.push_back({Sun_.rx,Sun_.ry,Sun_.rx});
-            Earth_VTK.push_back({Earth_.rx,Earth_.ry,Earth_.rx});
+            Sun_VTK.push_back({Sun_.rx,Sun_.ry,Sun_.rz});
+            Earth_VTK.push_back({Earth_.rx,Earth_.ry,Earth_.rz});
         // ==============================================================================================================================================
 
 
        
         iterations++;
-        std::cout << "iter" << std::endl;
     } 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-    std::ofstream vtkstrg("sun_vtk_data.txt");
-
-    for(int i = 0; i < iterations; i++){
-        for(int j = 0; j < 3;j++){
-            vtkstrg << Sun_VTK[iterations][j];
-            vtkstrg << "\n";
+    std::cout << "done_with_loop" << std::endl;
+    std::cout << Sun_VTK.size() << std::endl;
+    std::ofstream Sun_vtkstrg("sun_vtk_data.txt");
+    std::ofstream Earth_vtkstrg("earth_vtk_data.txt");
+    
+    if(Sun_vtkstrg.is_open() && Earth_vtkstrg.is_open()){
+        for(int i = 0; i < iterations; i++){
+            // std::cout << i << std::endl;
+            for(int j = 0; j < 3; j++){
+                Sun_vtkstrg << Sun_VTK[i][j] << " ";
+                Earth_vtkstrg << Earth_VTK[i][j] << " ";
+            }
+            Sun_vtkstrg << "\n";
+            Earth_vtkstrg << "\n";
+    
         }
     }
+
 
     
 }
