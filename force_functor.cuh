@@ -7,6 +7,10 @@ struct force_functor
 
     __host__ __device__
     void operator()(Body<T>& input){
+        // reset force between each addition:
+        input.Fx = 0;
+        input.Fy = 0;
+        input.Fz = 0;
         for(size_t j = 0; j < arr_size; j++){
             if(&gpu_grav_bodies_arr[j] == &input){ // Having the same gravitational body be attracted by itself blows up
                 // same bodies

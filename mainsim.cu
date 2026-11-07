@@ -94,7 +94,7 @@ void run(int N, T dt){
     std::vector<std::vector<T>> Moon_VTK;
 
     // Execution loop / end of setup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int maximum = 100;
+    int maximum = 1000;
     int iterations = 0;
 
     while(iterations < maximum){
@@ -111,8 +111,8 @@ void run(int N, T dt){
         // ==============================================================================================================================================
         // **Loops 3 & 4 step everything from passive bodies and grav bodies
         // 
-            thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), step_functor<T>{});
-            thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), step_functor<T>{});
+            thrust::for_each(thrust::device, passive_bodies_D.begin(), passive_bodies_D.end(), step_functor<T>{dt});
+            thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), step_functor<T>{dt});
         //
         // ==============================================================================================================================================
         // **Optional save to array which takes a lot of extra time
@@ -130,8 +130,8 @@ void run(int N, T dt){
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     std::cout << "done_with_loop" << std::endl;
     std::cout << Sun_VTK.size() << std::endl;
-    std::ofstream Sun_vtkstrg("sun_vtk_data.txt");
-    std::ofstream Earth_vtkstrg("earth_vtk_data.txt");
+    std::ofstream Sun_vtkstrg("visualization/sun_vtk_data.txt");
+    std::ofstream Earth_vtkstrg("visualization/earth_vtk_data.txt");
     
     if(Sun_vtkstrg.is_open() && Earth_vtkstrg.is_open()){
         for(int i = 0; i < iterations; i++){
@@ -153,7 +153,7 @@ void run(int N, T dt){
 int main(){
     // Parameter 1 is how many passive bodies there are
     // Parameter 2 is how many seconds/step (dt)
-    run<double>(0, 1000);
+    run<double>(0, 100);
 }
 
 

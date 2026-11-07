@@ -45,9 +45,9 @@ struct Body{
     __host__ __device__ void step(T dt){
         // first order euler partial implicit
         // update to leapfrog 
-        this->vx += this->Fx/this->m;
-        this->vy += this->Fy/this->m;
-        this->vz += this->Fz/this->m;
+        this->vx += (this->Fx/this->m) * dt;
+        this->vy += (this->Fy/this->m) * dt;
+        this->vz += (this->Fz/this->m)* dt;
         this->rx += this->vx * dt;
         this->ry += this->vy * dt;
         this->rz += this->vz * dt;
@@ -58,13 +58,13 @@ struct Body{
         T dy = other->ry - this->ry;
         T dz = other->rz - this->rz;
         // Pythagoreon theorem dist:
-        T squared_dist = (std::pow(dx, 2)) * std::pow(dy, 2) * std::pow(dz, 2);
+        T squared_dist = (std::pow(dx, 2)) + std::pow(dy, 2) + std::pow(dz, 2);
         return (std::sqrt(squared_dist));
     }
     
     __host__ __device__ void add_force(Body* other){
         T r = distance_to(other);
-        T F = this->G * this->m * other->m / (r); 
+        T F = this->G * this->m * other->m / std::pow(r,2); 
 
         // F_ = F * cos(theta) [theta = angle between x axis and F vector]
         // Deriving this, I can demonstrate how Fx (force in X direction) = F * dx/r (dx = difference in x coordinate; r = distance vector)
