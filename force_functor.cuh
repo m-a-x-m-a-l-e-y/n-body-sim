@@ -1,4 +1,3 @@
-#include "bodies.cu"
 
 template <typename T>
 struct force_functor
@@ -6,11 +5,10 @@ struct force_functor
     Body<T> * gpu_grav_bodies_arr;
     size_t arr_size;
 
-
     __host__ __device__
-    void operator()(Body<T>* input){
+    void operator()(Body<T>& input){
         for(size_t j = 0; j < arr_size; j++){
-            input->add_force(gpu_grav_bodies_arr[j]);
+            input.add_force(&gpu_grav_bodies_arr[j]);
         }
     }
 };

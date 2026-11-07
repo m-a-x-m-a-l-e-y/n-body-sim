@@ -1,7 +1,9 @@
+// pragma once makes it so Body doesn't get defined multiple times when compiling mainsim, as force_functor and step_functor include this file
+
+
 template <typename T>
 struct Body{
     static constexpr T G = 6.673e-11;
-
     // x,y,z coords 
     T rx;
     T ry;
@@ -10,17 +12,12 @@ struct Body{
     T vx;
     T vy;
     T vz;
-    // x,y,z accelerations
-    T ax;
-    T ay;
-    T az;
     // x,y,z force [ undecided if these need to be here or can exist outsside]
     T Fx;
     T Fy;
     T Fz;
     // mass
     T m;
-
 
     // Functions list: 
     // =============================================================================
@@ -45,15 +42,15 @@ struct Body{
         // calculates starting velocity to enable circular orbits
     // =============================================================================
     
-    __host__ __device__ void step(){
+    __host__ __device__ void step(T dt){
         // first order euler partial implicit
         // update to leapfrog 
-        this->vx += this->fx/this->m;
-        this->vy += this->fy/this->m;
-        this->vz += this->fz/this->m;
-        this->rx += this->vx * this->dt;
-        this->ry += this->vy * this->dt;
-        this-> rz += this->vz * this->dt;
+        this->vx += this->Fx/this->m;
+        this->vy += this->Fy/this->m;
+        this->vz += this->Fz/this->m;
+        this->rx += this->vx * dt;
+        this->ry += this->vy * dt;
+        this->rz += this->vz * dt;
     }
     __host__ __device__ T distance_to (Body* other){
         // Differences in current position
@@ -61,12 +58,11 @@ struct Body{
         T dy = other->ry - this->ry;
         T dz = other->rz - this->rz;
         // Pythagoreon theorem dist:
-        T squared_dist = (dx^2) * (dy^2) * (dz^2);
+        T squared_dist = (std::pow(dx, 2)) * std::pow(dy, 2) * std::pow(dz, 2);
         return (std::sqrt(squared_dist));
     }
     
     __host__ __device__ void add_force(Body* other){
-        // F = G *(m1 * m2) / (d)^2
         T r = distance_to(other);
         T F = this->G * this->m * other->m / (r); 
 
@@ -96,8 +92,8 @@ struct Body{
 
 };
 
-template <typename T>
-struct Gravitational : Body<T>{
-    int grav;
-};
+// template <typename T>
+// // struct Gravitational : Body<T>{
+// //     int grav;
+// // };
 
