@@ -1,6 +1,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 #include "bodies.cuh"
 #include "force_functor.cuh"
@@ -50,8 +51,8 @@ void run(int N, T dt){
     // All 3 bodies are along the X-Axis, so circular starting velocities are in the y-direction
     Earth.vy = Earth.circular_orbit_velocity(&Sun);
     Moon.vy = Moon.circular_orbit_velocity(&Earth);
-    std::cout << Earth.vy <<std::endl;
-    std::cout << Moon.vy << std::endl;
+    // std::cout << Earth.vy <<std::endl;
+    // std::cout << Moon.vy << std::endl;
     
     //Add all bodies to thrust vectors ========================================
         std::vector <Body<T>> passive_bodies;
@@ -94,8 +95,12 @@ void run(int N, T dt){
     std::vector<std::vector<T>> Moon_VTK;
 
     // Execution loop / end of setup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int maximum = 1000;
+    int maximum = 1e5;
     int iterations = 0;
+
+    // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
+    auto start = std::chrono::high_resolution_clock::now();
+    // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
 
     while(iterations < maximum){
         //==============================================================================================================================================
@@ -128,8 +133,14 @@ void run(int N, T dt){
         iterations++;
     } 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    std::cout << "done_with_loop" << std::endl;
-    std::cout << Sun_VTK.size() << std::endl;
+    
+    // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    
+    std::cout << "done with loop in " << duration.count() << "ms" << std::endl;
     std::ofstream Sun_vtkstrg("visualization/sun_vtk_data.txt");
     std::ofstream Earth_vtkstrg("visualization/earth_vtk_data.txt");
     
@@ -153,7 +164,7 @@ void run(int N, T dt){
 int main(){
     // Parameter 1 is how many passive bodies there are
     // Parameter 2 is how many seconds/step (dt)
-    run<double>(0, 100);
+    run<double>(0, 1000);
 }
 
 
