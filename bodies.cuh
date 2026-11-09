@@ -63,7 +63,8 @@ struct Body{
     }
     
     __host__ __device__ void add_force(Body* other){
-        T r = distance_to(other);
+        const T eps = 1e-3;  
+        T r = distance_to(other)  +eps ;
         T F = this->G * this->m * other->m / std::pow(r,2); 
 
         // F_ = F * cos(theta) [theta = angle between x axis and F vector]
@@ -76,6 +77,7 @@ struct Body{
         T dx = other->rx - this->rx;
         T dy = other->ry - this->ry;
         T dz = other->rz - this->rz;
+        
         this->Fx += F * dx/r;
         this->Fy += F * dy/r;
         this->Fz += F * dz/r;
