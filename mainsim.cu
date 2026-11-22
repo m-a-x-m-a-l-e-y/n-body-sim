@@ -7,6 +7,7 @@
 #include "bodies.cuh"
 #include "force_functor.cuh"
 #include "step_functor.cuh"
+#include "initialize_velocity_functor.cuh"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
@@ -22,9 +23,9 @@ static const double Mass_Moon = 7.35e22;
 static const double Sun_Position [] = {0,0,0}; // x , y, z
 static const double Earth_Position [] = {Sun_Position[0] + 1.49e11, Sun_Position[1] + 0, Sun_Position[2] + 1e9};
 static const double Moon_Position [] = {Earth_Position[0] + 3.844e8,Earth_Position[1] + 0,Earth_Position[2] + 0};
-
+// 
 template<typename T>
-void run(int N, T dt){
+void run(int N, int steps,T dt){
     // Create bodies:
     Body <T> Sun = { .rx = 0, .ry = 0, .rz = 0,
                           .vx = 0, .vy = 0, .vz = 0,
@@ -46,6 +47,8 @@ void run(int N, T dt){
     Earth.vy = Earth.circular_orbit_velocity(&Sun);
     Moon.vy = Earth.circular_orbit_velocity(&Sun) + Moon.circular_orbit_velocity(&Earth);
     // Sun.vz = Earth.vy / 3;
+
+    // Add Leapfrog off by 1/2 'i' offset to velocity. 
     
     //Add all bodies to thrust vectors ========================================
         
@@ -93,14 +96,14 @@ void run(int N, T dt){
     
 
     // Execution loop / end of setup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    int maximum = 1e6;
+    // int maximum = 1e6;
     int iterations = 0;
 
     // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
     auto start = std::chrono::high_resolution_clock::now();
     // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
 
-    while(iterations < maximum){
+    while(iterations < steps){
         //==============================================================================================================================================
         // **First loop adds all the forces from the gravitational bodies onto the passive bodies
         // -- for_each uses : (device type, begin pointer, end pointer, functor to apple) -- 
@@ -111,6 +114,14 @@ void run(int N, T dt){
         // **Second loop adds all the forces from the gravitational bodies onto the gravitational bodies
         // -- 
             thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), force_functor<T>{thrust::raw_pointer_cast(grav_bodies_D.data()) , grav_bodies_D.size()});
+
+        // ==============================================================================================================================================
+        // Initialize velocities at the v(1/2) value, after force has been computed
+        // This only runs on first loop
+            if(iterations == 0){
+                thrust::for_each(thrust::device, grav_bodies_D.begin(), grav_bodies_D.end(), intialize_velocity_functor<T>{dt});
+            }
+
         // ==============================================================================================================================================
         // **Loops 3 & 4 step everything from passive bodies and grav bodies
         // 
@@ -186,8 +197,9 @@ void run(int N, T dt){
 
 int main(){
     // Parameter 1 is how many passive bodies there are
-    // Parameter 2 is how many seconds/step (dt)
-    run<double>(0, 1000);
+    // Parameter 2 is how many steps are taken
+    // Parameter 3 is how many seconds/step (dt)
+    run<double>(3, 1e4, 1000);
 }
 
 

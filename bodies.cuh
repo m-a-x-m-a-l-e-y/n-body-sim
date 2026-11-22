@@ -18,6 +18,7 @@ struct Body{
     T Fz;
     // mass
     T m;
+    
 
     // Functions list: 
     // =============================================================================
@@ -41,13 +42,24 @@ struct Body{
         // circular_orbit_velocity():
         // calculates starting velocity to enable circular orbits
     // =============================================================================
-    
+
+
+    __host__ __device__ void INIT_VELOCITY(T dt){
+        // Only called once to step forward velocity by 1/2 dt
+        this->vx += (this->Fx/this->m) * dt/2;
+        this->vy += (this->Fy/this->m) * dt/2;
+        this->vz += (this->Fz/this->m)* dt/2;
+    }
     __host__ __device__ void step(T dt){
         // first order euler partial implicit
+        
+        
         // update to leapfrog 
+
         this->vx += (this->Fx/this->m) * dt;
         this->vy += (this->Fy/this->m) * dt;
         this->vz += (this->Fz/this->m)* dt;
+        
         this->rx += this->vx * dt;
         this->ry += this->vy * dt;
         this->rz += this->vz * dt;
