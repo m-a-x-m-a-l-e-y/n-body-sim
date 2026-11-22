@@ -30,23 +30,23 @@ void run(int N, int steps,T dt){
     Body <T> Sun = { .rx = 0, .ry = 0, .rz = 0,
                           .vx = 0, .vy = 0, .vz = 0,
                           .Fx = 0, .Fy = 0, .Fz = 0,
-                          .m = Mass_Sun};
+                          .m = Mass_Sun, .radius = 695.7e6};
     
     Body <T> Earth = {.rx = Earth_Position[0], .ry = Earth_Position[1], .rz = Earth_Position[2],
                           .vx = 0, .vy = 0, .vz = 0,
                           .Fx = 0, .Fy = 0, .Fz = 0,
-                          .m = Mass_Earth};
+                          .m = Mass_Earth, .radius = 6371e3};
     
     Body <T> Moon = { .rx = Moon_Position[0], .ry = Moon_Position[1], .rz = Moon_Position[2],
                           .vx = 0, .vy = 0, .vz = 0,
                           .Fx = 0, .Fy = 0, .Fz = 0,
-                          .m = Mass_Moon};
+                          .m = Mass_Moon, .radius = 1737e3};
 
 
     // All 3 bodies are along the X-Axis, so circular starting velocities are in the y-direction
     Earth.vy = Earth.circular_orbit_velocity(&Sun);
     Moon.vy = Earth.circular_orbit_velocity(&Sun) + Moon.circular_orbit_velocity(&Earth);
-    // Sun.vz = Earth.vy / 3;
+    Sun.vz = Earth.vy / 3;
 
     // Add Leapfrog off by 1/2 'i' offset to velocity. 
     
@@ -67,14 +67,18 @@ void run(int N, int steps,T dt){
             std::vector <Body<T>> passive_bodies;
             thrust::device_vector <Body<T>> passive_bodies_D;
             // Push back N-bodies
+            
+
+            // randomization for pos and direction
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::uniform_real_distribution <double> distr(1e10, 1e11);
+            std::uniform_real_distribution <double> r_distr(-1e11, 1e11);
+            std::uniform_real_distribution <double> v_distr(-Earth.vy, Earth.vy);
 
             for(size_t i = 0; i < N; i++){
 
-                Body<T> point = { .rx = distr(gen), .ry = 0, .rz = 0,
-                                .vx = 0, .vy = 0, .vz = 0,
+                Body<T> point = { .rx = r_distr(gen), .ry = r_distr(gen), .rz = r_distr(gen),
+                                .vx = v_distr(gen), .vy = v_distr(gen), .vz = v_distr(gen),
                                 .Fx = 0, .Fy = 0, .Fz = 0,
                                 .m = 1};
                 passive_bodies.push_back(point);
@@ -195,11 +199,11 @@ void run(int N, int steps,T dt){
     
 }
 
-int main(){
+int main(int argc, char* argv[]){
     // Parameter 1 is how many passive bodies there are
     // Parameter 2 is how many steps are taken
     // Parameter 3 is how many seconds/step (dt)
-    run<double>(3, 1e4, 1000);
+    run<double>(std::stoi(argv[argc - 1]), 1e6, 100);
 }
 
 

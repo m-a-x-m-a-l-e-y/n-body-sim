@@ -18,6 +18,7 @@ struct Body{
     T Fz;
     // mass
     T m;
+    T radius;
     
 
     // Functions list: 
@@ -93,6 +94,7 @@ struct Body{
         this->Fx += F * dx/r;
         this->Fy += F * dy/r;
         this->Fz += F * dz/r;
+        
 
     }
 

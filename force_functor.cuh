@@ -16,9 +16,15 @@ struct force_functor
                 // same bodies
                 continue;
             }
-            else if(input.distance_to(&gpu_grav_bodies_arr[j]) == 0){
-                // same point in space
-                continue;
+            else if(input.distance_to(&gpu_grav_bodies_arr[j]) < gpu_grav_bodies_arr[j].radius){
+                // stops collisions
+                // for now no collision logic it just stops
+                input.vx =0;
+                input.vy =0;
+                input.vz =0;
+                break;
+
+
             }
             input.add_force(&gpu_grav_bodies_arr[j]);
         }
