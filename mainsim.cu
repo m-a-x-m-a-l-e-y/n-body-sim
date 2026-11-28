@@ -15,6 +15,10 @@
 #include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
 
+// Function definitions 
+template<typename T> void print_to_timestep_files(std::vector<std::vector<T>>*,std::vector<std::vector<T>>*,std::vector<std::vector<T>>*,std::vector<std::vector<std::vector<T> > >* NBody_VTK);
+//
+
 // Constant for newtonian calculations : 
 // static const double G = 6.673e-11; // used in method functions not needed here
 static const double Mass_Sun = 1.9884e30; // kg 
@@ -96,7 +100,7 @@ void run(int N, int steps,T dt){
     std::vector<std::vector<T>> Sun_VTK;
     std::vector<std::vector<T>> Earth_VTK;
     std::vector<std::vector<T>> Moon_VTK;
-    std::vector<std::vector<T>> NBody_VTK;
+    std::vector<std::vector<std::vector<T>>> NBody_VTK(N); // array of N body data lists which have 3 wide vectors of values
     
 
     // Execution loop / end of setup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -107,7 +111,7 @@ void run(int N, int steps,T dt){
     auto start = std::chrono::high_resolution_clock::now();
     // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
 
-    while(iterations < steps){
+    while(iterations < steps - 1){  // Temp fix for out of bounding with leapfrog
         //==============================================================================================================================================
         // **First loop adds all the forces from the gravitational bodies onto the passive bodies
         // -- for_each uses : (device type, begin pointer, end pointer, functor to apple) -- 
@@ -144,7 +148,7 @@ void run(int N, int steps,T dt){
                 Moon_VTK.push_back({Moon_.rx,Moon_.ry,Moon_.rz});
                 for(size_t i = 0; i < N; ++i){
                     Body<T> b = passive_bodies_D[i];
-                    NBody_VTK.push_back({b.rx, b.ry, b.rz});
+                    NBody_VTK[i].push_back({b.rx, b.ry, b.rz});
                 }
             }
 
@@ -163,47 +167,72 @@ void run(int N, int steps,T dt){
     // Timing +++++++++++++++++++++++++++++++++++++++++++++++++
     
     
-    std::cout << "done with loop in " << duration.count() << "ms" << std::endl;
-    std::ofstream Sun_vtkstrg("visualization/sun_vtk_data.txt");
-    std::ofstream Earth_vtkstrg("visualization/earth_vtk_data.txt");
-    std::ofstream Moon_vtkstrg("visualization/moon_vtk_data.txt");
-    
-    if(Sun_vtkstrg.is_open() && Earth_vtkstrg.is_open() && Moon_vtkstrg.is_open()){
-        for(int i = 0; i < Sun_VTK.size(); i++){
-            // std::cout << i << std::endl;
-            for(int j = 0; j < 3; j++){
-                Sun_vtkstrg << Sun_VTK[i][j] << " ";
-                Earth_vtkstrg << Earth_VTK[i][j] << " ";
-                Moon_vtkstrg <<  Moon_VTK[i][j] << " ";
-            }
-            Sun_vtkstrg << "\n";
-            Earth_vtkstrg << "\n";
-            Moon_vtkstrg << "\n";
-    
-        }
-    }
-    std::ofstream NBodies_vtkstrg("visualization/nbodies_vtk_data.txt");
-    
-        for(int i = 0; i < NBody_VTK.size(); i++){
-                // std::cout << i << std::endl;
-                for(int j = 0; j < 3; j++){
-                    NBodies_vtkstrg << NBody_VTK[i][j] << " ";
-                    
-                }
-                NBodies_vtkstrg << "\n";
-        
-        }
-
+    std::cout << "Computed " << steps << " steps with timestep " << dt <<"s in " << duration.count() << "ms" << std::endl;
+    std::cout << "Total computations : " << steps * (3 + N) << std::endl;
+    // New printout writes out dat ato each file
+    print_to_timestep_files(&Sun_VTK, &Earth_VTK, &Moon_VTK, &NBody_VTK);
 
 
     
 }
+template<typename T>
+void print_to_timestep_files(std::vector<std::vector<T>>* Sun_VTK,  
+                             std::vector<std::vector<T>>* Earth_VTK,
+                             std::vector<std::vector<T>> * Moon_VTK, 
+                             std::vector<std::vector<std::vector<T> > >* NBody_VTK ){
+    for(size_t i = 0; i < Sun_VTK->size(); i++){
+        std::string pathname = "visualization/steps/timestep_" + std::to_string(i)      + ".txt";
+        std::ofstream  vtkstring(pathname);
+        for (size_t j = 0; j < 3; ++j){
+            vtkstring << (*Sun_VTK)  [i][j] << " ";
+        }
+        vtkstring << "\n";
+        for (size_t j = 0; j < 3; ++j){
+            vtkstring << (*Earth_VTK)[i][j] << " ";        
+        }
+        vtkstring << "\n";
+        for (size_t j = 0; j < 3; ++j){
+            vtkstring << (*Moon_VTK) [i][j] << " ";
+        }
+        vtkstring << "\n";
+        for(size_t x = 0; x < NBody_VTK->size(); ++x){
+            
+            for (size_t j = 0; j < 3; ++j){
+                // [x][i][j] gives the Nth vector and then i gives timestep, j gives 3 values
+                vtkstring << (*NBody_VTK)[x][i][j] << " ";
+            }
+            vtkstring << "\n";
+        }
+        
+    }
+    
+}
 
 int main(int argc, char* argv[]){
+    
+    auto start = std::chrono::high_resolution_clock::now(); // Timing
+    int steps = 1e2; // Could switch these to CLI args later
+    double dt = 100; 
+
+    // Actual Simulation Run ==============================
+    run<double>(std::stoi(argv[argc - 1]), steps, dt);
+    // run<T>(p1,p2,p3) ...
     // Parameter 1 is how many passive bodies there are
     // Parameter 2 is how many steps are taken
     // Parameter 3 is how many seconds/step (dt)
-    run<double>(std::stoi(argv[argc - 1]), 1e6, 100);
+    // ====================================================
+    
+    // Timing
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start );
+    std::cout << "Total simulation time : " << double(duration.count()) << "ms" << std::endl;
+    // ######
+
+    // Historical data collection an storage
+    std::ofstream run_data("run_data/data.txt", std::ios::app); // Append default so we don't lose data
+    run_data << "| steps : " << steps << " | dt : " << dt << " | N : "  << std::stoi(argv[argc - 1]) << " | total simulation time : " << duration.count() << "ms \n"; 
+    std::cout << "| steps : " << steps << " | dt : " << dt << " | N : "  << std::stoi(argv[argc - 1]) << " | total simulation time : " << duration.count() << "ms ";
+    // =====================================
 }
 
 
