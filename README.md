@@ -8,4 +8,6 @@ N-Body simulator
 
 <img width="1005" height="808" alt="image" src="https://github.com/user-attachments/assets/feb6c66a-1556-4845-8aed-1047b6f94986" />
 
+<img width="1217" height="807" alt="image" src="https://github.com/user-attachments/assets/2f6a1bf1-25a7-40b4-84e6-9a127961756a" />
+
 
