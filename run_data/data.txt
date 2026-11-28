@@ -1,2 +1,5 @@
 | steps : 100 | dt : 100 | N : 4 | total simulation time : 250ms 
 | steps : 100 | dt : 100 | N : 4 | total simulation time : 235ms 
+| steps : 100 | dt : 100 | N : 100 | total simulation time : 254ms 
+| steps : 1000 | dt : 1000 | N : 1000 | total simulation time : 645ms 
+| steps : 10000 | dt : 1000 | N : 1000 | total simulation time : 4570ms 

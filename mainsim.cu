@@ -1,3 +1,10 @@
+// 
+// Instructions to run this file are in run.sh
+//
+// Things that need to be fixed:
+// 
+
+
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -211,11 +218,14 @@ void print_to_timestep_files(std::vector<std::vector<T>>* Sun_VTK,
 int main(int argc, char* argv[]){
     
     auto start = std::chrono::high_resolution_clock::now(); // Timing
-    int steps = 1e2; // Could switch these to CLI args later
-    double dt = 100; 
+
+
+    int N     = std::stoi(argv[1]);
+    int steps = std::stoi(argv[2]); 
+    double dt = std::stoi(argv[3]); 
 
     // Actual Simulation Run ==============================
-    run<double>(std::stoi(argv[argc - 1]), steps, dt);
+    run<double>(N, steps, dt);
     // run<T>(p1,p2,p3) ...
     // Parameter 1 is how many passive bodies there are
     // Parameter 2 is how many steps are taken
